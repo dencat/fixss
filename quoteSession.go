@@ -50,7 +50,7 @@ func startSendingMarketData(symbol string, id quickfix.SessionID) {
 		quoteConfig := GetQuoteConfig(symbol)
 		if quoteConfig != nil {
 			sendMarketData(symbol, *quoteConfig, id)
-			time.Sleep(time.Duration(quoteConfig.interval * 1000000))
+			time.Sleep(time.Duration(quoteConfig.Interval * 1000000))
 		} else {
 			time.Sleep(10000 * time.Millisecond)
 		}
@@ -59,19 +59,19 @@ func startSendingMarketData(symbol string, id quickfix.SessionID) {
 	Log.Infof("Finish sending quotes %s to %s", symbol, id)
 }
 
-func sendMarketData(symbol string, config quoteConfig, id quickfix.SessionID) {
+func sendMarketData(symbol string, config QuoteConfig, id quickfix.SessionID) {
 	res := fix44mkdir.New()
 
 	res.SetMDReqID(symbol + "0000")
 	group := fix44mkdir.NewNoMDEntriesRepeatingGroup()
 
-	for _, entity := range config.entities {
+	for _, entity := range config.Entities {
 		entry := group.Add()
 		entry.SetMDUpdateAction(enum.MDUpdateAction_CHANGE)
 		entry.SetSymbol(symbol)
-		entry.SetMDEntrySize(decimal.NewFromFloat(entity.size), 4)
-		entry.SetMDEntryPx(decimal.NewFromFloat(entity.price), 4)
-		if entity.direction == BID {
+		entry.SetMDEntrySize(decimal.NewFromFloat(entity.Size), 4)
+		entry.SetMDEntryPx(decimal.NewFromFloat(entity.Price), 4)
+		if entity.Direction == BID {
 			entry.SetMDEntryType(enum.MDEntryType_BID)
 		} else {
 			entry.SetMDEntryType(enum.MDEntryType_OFFER)

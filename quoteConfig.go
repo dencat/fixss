@@ -3,34 +3,40 @@ package main
 const BID = "bid"
 const OFFER = "offer"
 
-var configs = map[string]quoteConfig{}
+var configs = map[string]QuoteConfig{}
 
 type entity struct {
-	size      float64
-	direction string
-	price     float64
+	Size      float64 `json:"size"`
+	Direction string  `json:"direction"`
+	Price     float64 `json:"price"`
 }
 
-type quoteConfig struct {
-	interval int64
-	entities []entity
+type QuoteConfig struct {
+	Symbol   string   `json:"symbol"`
+	Interval int64    `json:"interval"`
+	Entities []entity `json:"entities"`
 }
 
 func LoadDefaultQuoteConfig() {
-	configs["EUR/USD_TOM"] = quoteConfig{
-		interval: 10000,
-		entities: []entity{
-			{size: 1000, direction: BID, price: 1.1},
-			{size: 1000, direction: OFFER, price: 1.2},
-			{size: 1000000, direction: BID, price: 1.05},
+	configs["EUR/USD_TOM"] = QuoteConfig{
+		Symbol:   "EUR/USD_TOM",
+		Interval: 10000,
+		Entities: []entity{
+			{Size: 1000, Direction: BID, Price: 1.1},
+			{Size: 1000, Direction: OFFER, Price: 1.2},
+			{Size: 1000000, Direction: BID, Price: 1.05},
 		},
 	}
 }
 
-func GetQuoteConfig(symbol string) *quoteConfig {
+func GetQuoteConfig(symbol string) *QuoteConfig {
 	res, ok := configs[symbol]
 	if ok {
 		return &res
 	}
 	return nil
+}
+
+func SetQuoteConfig(quoteConfig QuoteConfig) {
+	configs[quoteConfig.Symbol] = quoteConfig
 }

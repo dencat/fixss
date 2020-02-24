@@ -21,6 +21,8 @@ func main() {
 
 	LoadDefaultQuoteConfig()
 
+	StartWebServer()
+
 	err := StartAcceptor()
 	if err != nil {
 		Log.Errorf("Can't start acceptor ", err)

@@ -3,6 +3,7 @@ module github.com/dencat/fixss
 go 1.13
 
 require (
+	github.com/gin-gonic/gin v1.5.0
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8 // indirect
 	github.com/juju/loggo v0.0.0-20190526231331-6e530bcce5d8
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
