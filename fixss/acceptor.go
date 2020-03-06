@@ -1,9 +1,11 @@
-package main
+package fixss
 
 import (
 	"github.com/quickfixgo/quickfix"
 	"os"
 )
+
+const CONFIG_PATH = "config/server.cfg"
 
 var acceptor *quickfix.Acceptor
 

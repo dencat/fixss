@@ -1,4 +1,4 @@
-package main
+package fixss
 
 import (
 	"github.com/quickfixgo/enum"

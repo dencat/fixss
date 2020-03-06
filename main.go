@@ -1,36 +1,30 @@
 package main
 
 import (
+	"github.com/dencat/fixss/fixss"
+	"github.com/juju/loggo"
 	"os"
 	"os/signal"
-
-	//"github.com/quickfixgo/tag"
-	//"github.com/shopspring/decimal"
-	"github.com/juju/loggo"
 )
-
-const CONFIG_PATH = "config/server.cfg"
-
-var Log = loggo.GetLogger("")
 
 func main() {
 	loggo.GetLogger("").SetLogLevel(loggo.INFO)
 	loggo.GetLogger("fix").SetLogLevel(loggo.INFO)
 
-	Log.Infof("Start application")
+	fixss.Log.Infof("Start application")
 
-	LoadDefaultQuoteConfig()
+	fixss.LoadDefaultQuoteConfig()
 
-	StartWebServer()
+	fixss.StartWebServer()
 
-	err := StartAcceptor()
+	err := fixss.StartAcceptor()
 	if err != nil {
-		Log.Errorf("Can't start acceptor ", err)
+		fixss.Log.Errorf("Can't start acceptor ", err)
 		return
 	}
 	interrupt := make(chan os.Signal)
 	signal.Notify(interrupt, os.Interrupt, os.Kill)
 	<-interrupt
 
-	StopAcceptor()
+	fixss.StopAcceptor()
 }

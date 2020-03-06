@@ -1,10 +1,12 @@
-package main
+package fixss
 
 import (
 	"fmt"
 	"github.com/juju/loggo"
 	"github.com/quickfixgo/quickfix"
 )
+
+var Log = loggo.GetLogger("")
 
 var fixLogger = loggo.GetLogger("fix")
 

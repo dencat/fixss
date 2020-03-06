@@ -1,4 +1,4 @@
-package main
+package fixss
 
 const BID = "bid"
 const OFFER = "offer"

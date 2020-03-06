@@ -13,6 +13,6 @@ require (
 	github.com/quickfixgo/quickfix v0.6.1-0.20190718201950-819c58d51b95
 	github.com/quickfixgo/tag v0.0.0-20171007194743-cbb465760521
 	github.com/shopspring/decimal v0.0.0-20200105231215-408a2507e114
-	github.com/stretchr/testify v1.5.1 // indirect
+	github.com/stretchr/testify v1.5.1
 	golang.org/x/net v0.0.0-20200219183655-46282727080f // indirect
 )

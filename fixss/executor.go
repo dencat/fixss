@@ -1,4 +1,4 @@
-package main
+package fixss
 
 import (
 	fix44mkd "github.com/quickfixgo/fix44/marketdatarequest"

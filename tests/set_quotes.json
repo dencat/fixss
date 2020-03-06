@@ -1,0 +1,21 @@
+{
+  "symbol": "EUR/USD_TOM",
+  "interval": 5000,
+  "entities": [
+    {
+      "size": 1000,
+      "direction": "bid",
+      "price": 1.03
+    },
+    {
+      "size": 1000,
+      "direction": "offer",
+      "price": 1.25
+    },
+    {
+      "size": 1000000,
+      "direction": "bid",
+      "price": 1.05
+    }
+  ]
+}
