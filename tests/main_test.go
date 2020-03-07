@@ -11,21 +11,24 @@ import (
 )
 
 func TestServer(t *testing.T) {
-	fixss.StartAcceptor()
+	asrt := assert.New(t)
+
+	err := fixss.StartAcceptor()
+	asrt.NoError(err)
 
 	router := fixss.CreateRouter()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/quoteConfig", nil)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "{}\n", w.Body.String())
+	asrt.Equal(200, w.Code)
+	asrt.Equal("{}\n", w.Body.String())
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("POST", "/api/v1/quoteConfig", strings.NewReader("a"))
 	router.ServeHTTP(w, req)
-	assert.Equal(t, 400, w.Code)
-	assert.Equal(t, "{\"status\":\"error\"}\n", w.Body.String())
+	asrt.Equal(400, w.Code)
+	asrt.Equal("{\"status\":\"error\"}\n", w.Body.String())
 
 	fixss.LoadDefaultQuoteConfig()
 	content, err := ioutil.ReadFile("get_quote_config_expected_1.json")
@@ -35,8 +38,8 @@ func TestServer(t *testing.T) {
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/v1/quoteConfig", nil)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, removeAllWhiteSpace(string(content)), removeAllWhiteSpace(w.Body.String()))
+	asrt.Equal(200, w.Code)
+	asrt.Equal(removeAllWhiteSpace(string(content)), removeAllWhiteSpace(w.Body.String()))
 
 	content, err = ioutil.ReadFile("set_quotes.json")
 	if err != nil {
@@ -45,19 +48,19 @@ func TestServer(t *testing.T) {
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("POST", "/api/v1/quoteConfig", strings.NewReader(string(content)))
 	router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "{\"status\":\"ok\"}\n", w.Body.String())
+	asrt.Equal(200, w.Code)
+	asrt.Equal("{\"status\":\"ok\"}\n", w.Body.String())
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/v1/quoteConfig", nil)
 	router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"interval\":5000,\"entities\":[{\"size\":1000,\"direction\":\"bid\",\"price\":1.03},{\"size\":1000,\"direction\":\"offer\",\"price\":1.25},{\"size\":1000000,\"direction\":\"bid\",\"price\":1.05}]}}\n", w.Body.String())
+	asrt.Equal(200, w.Code)
+	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"interval\":5000,\"entities\":[{\"size\":1000,\"direction\":\"bid\",\"price\":1.03},{\"size\":1000,\"direction\":\"offer\",\"price\":1.25},{\"size\":1000000,\"direction\":\"bid\",\"price\":1.05}]}}\n", w.Body.String())
 
-	assert.Equal(t, true, fixss.GetQuoteConfig("EUR/USD_TOD") == nil)
-	assert.Equal(t, true, fixss.GetQuoteConfig("EUR/USD_TOM") != nil)
-	assert.Equal(t, int64(5000), fixss.GetQuoteConfig("EUR/USD_TOM").Interval)
-	assert.Equal(t, 3, len(fixss.GetQuoteConfig("EUR/USD_TOM").Entities))
+	asrt.Equal(true, fixss.GetQuoteConfig("EUR/USD_TOD") == nil)
+	asrt.Equal(true, fixss.GetQuoteConfig("EUR/USD_TOM") != nil)
+	asrt.Equal(int64(5000), fixss.GetQuoteConfig("EUR/USD_TOM").Interval)
+	asrt.Equal(3, len(fixss.GetQuoteConfig("EUR/USD_TOM").Entities))
 
 	fixss.StopAcceptor()
 }
