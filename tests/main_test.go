@@ -11,6 +11,8 @@ import (
 )
 
 func TestServer(t *testing.T) {
+	fixss.StartAcceptor()
+
 	router := fixss.CreateRouter()
 
 	w := httptest.NewRecorder()
@@ -56,6 +58,8 @@ func TestServer(t *testing.T) {
 	assert.Equal(t, true, fixss.GetQuoteConfig("EUR/USD_TOM") != nil)
 	assert.Equal(t, int64(5000), fixss.GetQuoteConfig("EUR/USD_TOM").Interval)
 	assert.Equal(t, 3, len(fixss.GetQuoteConfig("EUR/USD_TOM").Entities))
+
+	fixss.StopAcceptor()
 }
 
 func removeAllWhiteSpace(str string) string {
