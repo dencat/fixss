@@ -1,6 +1,6 @@
 {
   "symbol": "EUR/USD_TOM",
-  "interval": 5000,
+  "interval": 100,
   "entities": [
     {
       "size": 1000,

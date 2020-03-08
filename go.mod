@@ -8,7 +8,7 @@ require (
 	github.com/juju/loggo v0.0.0-20190526231331-6e530bcce5d8
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/quickfixgo/enum v0.0.0-20171007195659-2cbed3730c3e
-	github.com/quickfixgo/field v0.0.0-20171007195410-74cea5ec78c7 // indirect
+	github.com/quickfixgo/field v0.0.0-20171007195410-74cea5ec78c7
 	github.com/quickfixgo/fix44 v0.0.0-20171007213039-f090a1006218
 	github.com/quickfixgo/quickfix v0.6.1-0.20190718201950-819c58d51b95
 	github.com/quickfixgo/tag v0.0.0-20171007194743-cbb465760521

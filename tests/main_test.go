@@ -34,13 +34,15 @@ func testServer(t *testing.T) {
 
 	loginDone := make(chan bool, 1)
 
-	client, _, err := CreateInitiator(loginDone)
+	client, clientApp, err := CreateInitiator(loginDone)
 	asrt.NoError(err)
 	err = client.Start()
 	asrt.NoError(err)
 
 	//	wait login
 	<-loginDone
+
+	clientApp.SendMarketDataRequest("EUR/USD_TOM")
 
 	router := fixss.CreateRouter()
 
@@ -81,11 +83,11 @@ func testServer(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/api/v1/quoteConfig", nil)
 	router.ServeHTTP(w, req)
 	asrt.Equal(200, w.Code)
-	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"interval\":5000,\"entities\":[{\"size\":1000,\"direction\":\"bid\",\"price\":1.03},{\"size\":1000,\"direction\":\"offer\",\"price\":1.25},{\"size\":1000000,\"direction\":\"bid\",\"price\":1.05}]}}\n", w.Body.String())
+	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"interval\":100,\"entities\":[{\"size\":1000,\"direction\":\"bid\",\"price\":1.03},{\"size\":1000,\"direction\":\"offer\",\"price\":1.25},{\"size\":1000000,\"direction\":\"bid\",\"price\":1.05}]}}\n", w.Body.String())
 
 	asrt.Equal(true, fixss.GetQuoteConfig("EUR/USD_TOD") == nil)
 	asrt.Equal(true, fixss.GetQuoteConfig("EUR/USD_TOM") != nil)
-	asrt.Equal(int64(5000), fixss.GetQuoteConfig("EUR/USD_TOM").Interval)
+	asrt.Equal(int64(100), fixss.GetQuoteConfig("EUR/USD_TOM").Interval)
 	asrt.Equal(3, len(fixss.GetQuoteConfig("EUR/USD_TOM").Entities))
 
 	client.Stop()
