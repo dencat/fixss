@@ -8,13 +8,39 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
-func TestServer(t *testing.T) {
+func TestWithTimeOut(t *testing.T) {
+	timeout := time.After(5 * time.Second)
+	done := make(chan bool)
+	go func() {
+		testServer(t)
+		done <- true
+	}()
+
+	select {
+	case <-timeout:
+		t.Fatal("Test didn't finish in time")
+	case <-done:
+	}
+}
+
+func testServer(t *testing.T) {
 	asrt := assert.New(t)
 
 	err := fixss.StartAcceptor()
 	asrt.NoError(err)
+
+	loginDone := make(chan bool, 1)
+
+	client, _, err := CreateInitiator(loginDone)
+	asrt.NoError(err)
+	err = client.Start()
+	asrt.NoError(err)
+
+	//	wait login
+	<-loginDone
 
 	router := fixss.CreateRouter()
 
@@ -62,6 +88,7 @@ func TestServer(t *testing.T) {
 	asrt.Equal(int64(5000), fixss.GetQuoteConfig("EUR/USD_TOM").Interval)
 	asrt.Equal(3, len(fixss.GetQuoteConfig("EUR/USD_TOM").Entities))
 
+	client.Stop()
 	fixss.StopAcceptor()
 }
 
