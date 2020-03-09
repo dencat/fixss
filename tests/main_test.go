@@ -12,7 +12,7 @@ import (
 )
 
 func TestWithTimeOut(t *testing.T) {
-	timeout := time.After(5 * time.Second)
+	timeout := time.After(10 * time.Second)
 	done := make(chan bool)
 	go func() {
 		testServer(t)
@@ -41,8 +41,6 @@ func testServer(t *testing.T) {
 
 	//	wait login
 	<-loginDone
-
-	clientApp.SendMarketDataRequest("EUR/USD_TOM")
 
 	router := fixss.CreateRouter()
 
@@ -89,6 +87,16 @@ func testServer(t *testing.T) {
 	asrt.Equal(true, fixss.GetQuoteConfig("EUR/USD_TOM") != nil)
 	asrt.Equal(int64(100), fixss.GetQuoteConfig("EUR/USD_TOM").Interval)
 	asrt.Equal(3, len(fixss.GetQuoteConfig("EUR/USD_TOM").Entities))
+
+	clientApp.SendMarketDataRequest("EUR/USD_TOM")
+
+	for {
+		if clientApp.GetLastQuote("EUR/USD_TOM_0_1000") == "1.03" &&
+			clientApp.GetLastQuote("EUR/USD_TOM_1_1000") == "1.25" &&
+			clientApp.GetLastQuote("EUR/USD_TOM_0_1000000") == "1.05" {
+			break
+		}
+	}
 
 	client.Stop()
 	fixss.StopAcceptor()

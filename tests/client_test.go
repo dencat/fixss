@@ -4,49 +4,76 @@ import (
 	"fmt"
 	"github.com/quickfixgo/enum"
 	"github.com/quickfixgo/field"
+	fix44mkdir "github.com/quickfixgo/fix44/marketdataincrementalrefresh"
 	fix44mdr "github.com/quickfixgo/fix44/marketdatarequest"
 	"github.com/quickfixgo/quickfix"
 	"os"
+	"sync"
 )
 
+var quotes = map[string]string{}
+
+var mux = sync.Mutex{}
+
 type TradeClient struct {
+	*quickfix.MessageRouter
 	loginDone chan bool
-	sessionID quickfix.SessionID
+	sessionID *quickfix.SessionID
 }
 
-func (e TradeClient) OnCreate(sessionID quickfix.SessionID) {
+func (e *TradeClient) OnCreate(sessionID quickfix.SessionID) {
 	return
 }
 
-func (e TradeClient) OnLogon(sessionID quickfix.SessionID) {
-	e.sessionID = sessionID
+func (e *TradeClient) OnLogon(sessionID quickfix.SessionID) {
+	e.sessionID = &sessionID
 	e.loginDone <- true
 }
 
-func (e TradeClient) OnLogout(sessionID quickfix.SessionID) {
+func (e *TradeClient) OnLogout(sessionID quickfix.SessionID) {
 	return
 }
 
-func (e TradeClient) FromAdmin(msg *quickfix.Message, sessionID quickfix.SessionID) (reject quickfix.MessageRejectError) {
+func (e *TradeClient) FromAdmin(msg *quickfix.Message, sessionID quickfix.SessionID) (reject quickfix.MessageRejectError) {
 	return
 }
 
-func (e TradeClient) ToAdmin(msg *quickfix.Message, sessionID quickfix.SessionID) {
+func (e *TradeClient) ToAdmin(msg *quickfix.Message, sessionID quickfix.SessionID) {
 	return
 }
 
-func (e TradeClient) ToApp(msg *quickfix.Message, sessionID quickfix.SessionID) (err error) {
+func (e *TradeClient) ToApp(msg *quickfix.Message, sessionID quickfix.SessionID) (err error) {
 	fmt.Printf("Sending %s\n", msg)
 	return
 }
 
-func (e TradeClient) FromApp(msg *quickfix.Message, sessionID quickfix.SessionID) (reject quickfix.MessageRejectError) {
-	fmt.Printf("FromApp: %s\n", msg.String())
-	return
+func (e *TradeClient) FromApp(msg *quickfix.Message, sessionID quickfix.SessionID) (reject quickfix.MessageRejectError) {
+	return e.Route(msg, sessionID)
 }
 
-func (e TradeClient) SendMarketDataRequest(symbol string) {
-	quickfix.SendToTarget(queryMarketDataRequest(symbol), e.sessionID)
+func (e *TradeClient) SendMarketDataRequest(symbol string) {
+	quickfix.SendToTarget(queryMarketDataRequest(symbol), *e.sessionID)
+}
+
+func (e *TradeClient) OnMarketDataIncrementalRefresh(msg fix44mkdir.MarketDataIncrementalRefresh, id quickfix.SessionID) quickfix.MessageRejectError {
+	mux.Lock()
+	entries, _ := msg.GetNoMDEntries()
+	for i := 0; i < entries.Len(); i++ {
+		px, _ := entries.Get(i).GetMDEntryPx()
+		qty, _ := entries.Get(i).GetMDEntrySize()
+		quoteType, _ := entries.Get(i).GetMDEntryType()
+		symbol, _ := entries.Get(i).GetSymbol()
+		key := symbol + "_" + string(quoteType) + "_" + qty.String()
+		quotes[key] = px.String()
+	}
+	defer mux.Unlock()
+	return nil
+}
+
+func (e *TradeClient) GetLastQuote(key string) string {
+	mux.Lock()
+	defer mux.Unlock()
+	return quotes[key]
 }
 
 func CreateInitiator(loginDone chan bool) (*quickfix.Initiator, *TradeClient, error) {
@@ -60,9 +87,11 @@ func CreateInitiator(loginDone chan bool) (*quickfix.Initiator, *TradeClient, er
 		return nil, nil, err
 	}
 
-	app := TradeClient{
-		loginDone: loginDone,
+	app := &TradeClient{
+		MessageRouter: quickfix.NewMessageRouter(),
+		loginDone:     loginDone,
 	}
+	app.AddRoute(fix44mkdir.Route(app.OnMarketDataIncrementalRefresh))
 
 	fileLogFactory, err := quickfix.NewFileLogFactory(appSettings)
 
@@ -71,7 +100,7 @@ func CreateInitiator(loginDone chan bool) (*quickfix.Initiator, *TradeClient, er
 	}
 
 	initiator, err := quickfix.NewInitiator(app, quickfix.NewMemoryStoreFactory(), appSettings, fileLogFactory)
-	return initiator, &app, err
+	return initiator, app, err
 
 }
 
@@ -89,6 +118,5 @@ func queryMarketDataRequest(symbol string) fix44mdr.MarketDataRequest {
 	relatedSym.Add().SetSymbol(symbol)
 	request.SetNoRelatedSym(relatedSym)
 
-	//queryHeader(request.Header)
 	return request
 }
