@@ -4,14 +4,19 @@ import (
 	"fmt"
 	"github.com/quickfixgo/enum"
 	"github.com/quickfixgo/field"
+	er "github.com/quickfixgo/fix44/executionreport"
 	fix44mkdir "github.com/quickfixgo/fix44/marketdataincrementalrefresh"
 	fix44mdr "github.com/quickfixgo/fix44/marketdatarequest"
+	nos "github.com/quickfixgo/fix44/newordersingle"
 	"github.com/quickfixgo/quickfix"
+	"github.com/shopspring/decimal"
 	"os"
 	"sync"
+	"time"
 )
 
 var quotes = map[string]string{}
+var orderStatuses = map[string]enum.OrdStatus{}
 
 var mux = sync.Mutex{}
 
@@ -55,6 +60,20 @@ func (e *TradeClient) SendMarketDataRequest(symbol string) {
 	quickfix.SendToTarget(queryMarketDataRequest(symbol), *e.sessionID)
 }
 
+func (e *TradeClient) SendOrder(orderId string, symbol string, orderQty decimal.Decimal, price decimal.Decimal) {
+	order := nos.New(
+		field.NewClOrdID(orderId),
+		field.NewSide(enum.Side_BUY),
+		field.NewTransactTime(time.Now()),
+		field.NewOrdType(enum.OrdType_LIMIT),
+	)
+	order.SetOrderQty(orderQty, 4)
+	order.SetPrice(price, 4)
+	order.SetSymbol(symbol)
+	order.SetTimeInForce(enum.TimeInForce_IMMEDIATE_OR_CANCEL)
+	quickfix.SendToTarget(order, *e.sessionID)
+}
+
 func (e *TradeClient) OnMarketDataIncrementalRefresh(msg fix44mkdir.MarketDataIncrementalRefresh, id quickfix.SessionID) quickfix.MessageRejectError {
 	mux.Lock()
 	entries, _ := msg.GetNoMDEntries()
@@ -92,6 +111,7 @@ func CreateInitiator(loginDone chan bool) (*quickfix.Initiator, *TradeClient, er
 		loginDone:     loginDone,
 	}
 	app.AddRoute(fix44mkdir.Route(app.OnMarketDataIncrementalRefresh))
+	app.AddRoute(er.Route(app.OnExecutionReport))
 
 	fileLogFactory, err := quickfix.NewFileLogFactory(appSettings)
 
@@ -119,4 +139,18 @@ func queryMarketDataRequest(symbol string) fix44mdr.MarketDataRequest {
 	request.SetNoRelatedSym(relatedSym)
 
 	return request
+}
+
+func (e *TradeClient) OnExecutionReport(msg er.ExecutionReport, id quickfix.SessionID) quickfix.MessageRejectError {
+	orderId, _ := msg.GetOrderID()
+	status, _ := msg.GetOrdStatus()
+	orderStatuses[orderId] = status
+	return nil
+}
+
+func (e *TradeClient) GetOrderStatus(key string) enum.OrdStatus {
+	if res, ok := orderStatuses[key]; ok {
+		return res
+	}
+	return enum.OrdStatus_NEW
 }

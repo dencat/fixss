@@ -2,6 +2,8 @@ package tests
 
 import (
 	"github.com/dencat/fixss/fixss"
+	"github.com/quickfixgo/enum"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -94,6 +96,31 @@ func testServer(t *testing.T) {
 		if clientApp.GetLastQuote("EUR/USD_TOM_0_1000") == "1.03" &&
 			clientApp.GetLastQuote("EUR/USD_TOM_1_1000") == "1.25" &&
 			clientApp.GetLastQuote("EUR/USD_TOM_0_1000000") == "1.05" {
+			break
+		}
+	}
+
+	content, err = ioutil.ReadFile("set_order_config.json")
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/v1/orderConfig", strings.NewReader(string(content)))
+	router.ServeHTTP(w, req)
+	asrt.Equal(200, w.Code)
+	asrt.Equal("{\"status\":\"ok\"}\n", w.Body.String())
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/api/v1/orderConfig", nil)
+	router.ServeHTTP(w, req)
+	asrt.Equal(200, w.Code)
+	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"strategy\":\"reject\"}}\n", w.Body.String())
+
+	asrt.Equal(fixss.Reject, fixss.GetOrderConfig("EUR/USD_TOM").Strategy)
+	clientApp.SendOrder("123", "EUR/USD_TOM", decimal.NewFromInt(1500), decimal.NewFromFloat(1.05))
+
+	for {
+		if clientApp.GetOrderStatus("123") == enum.OrdStatus_REJECTED {
 			break
 		}
 	}

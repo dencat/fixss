@@ -1,9 +1,11 @@
 package fixss
 
+import "github.com/quickfixgo/enum"
+
 const BID = "bid"
 const OFFER = "offer"
 
-var configs = map[string]QuoteConfig{}
+var quoteConfigs = map[string]QuoteConfig{}
 
 type entity struct {
 	Size      float64 `json:"size"`
@@ -18,7 +20,7 @@ type QuoteConfig struct {
 }
 
 func LoadDefaultQuoteConfig() {
-	configs["EUR/USD_TOM"] = QuoteConfig{
+	quoteConfigs["EUR/USD_TOM"] = QuoteConfig{
 		Symbol:   "EUR/USD_TOM",
 		Interval: 10000,
 		Entities: []entity{
@@ -30,7 +32,7 @@ func LoadDefaultQuoteConfig() {
 }
 
 func GetQuoteConfig(symbol string) *QuoteConfig {
-	res, ok := configs[symbol]
+	res, ok := quoteConfigs[symbol]
 	if ok {
 		return &res
 	}
@@ -38,5 +40,20 @@ func GetQuoteConfig(symbol string) *QuoteConfig {
 }
 
 func SetQuoteConfig(quoteConfig QuoteConfig) {
-	configs[quoteConfig.Symbol] = quoteConfig
+	quoteConfigs[quoteConfig.Symbol] = quoteConfig
+}
+
+func GetMarketPrice(symbol string, side enum.Side, size float64) *float64 {
+	var res *float64 = nil
+	if config, ok := quoteConfigs[symbol]; ok {
+		for _, entity := range config.Entities {
+			if entity.Direction == BID && side == enum.Side_BUY {
+				continue
+			}
+			if entity.Direction == OFFER && side == enum.Side_SELL {
+				continue
+			}
+		}
+	}
+	return res
 }
