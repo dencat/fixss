@@ -87,6 +87,7 @@ func processOrder(msg nos.NewOrderSingle, id quickfix.SessionID) {
 	case Accept:
 		executeOrder(orderId, symbol, side, price, orderQty, id)
 	case Reject:
+		fallthrough
 	default:
 		sendRejectEr(orderId, side, id)
 
