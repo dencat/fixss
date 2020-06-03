@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strconv"
 	"sync/atomic"
+	"time"
 )
 
 type execIdCounter struct {
@@ -80,17 +81,17 @@ func processOrder(msg nos.NewOrderSingle, id quickfix.SessionID) {
 	price, _ := msg.GetPrice()
 	orderQty, _ := msg.GetOrderQty()
 
-	Log.Infof("New order %s %s %s %s %s", orderId, symbol, side, price, orderQty)
-
 	orderConfig := GetOrderConfig(symbol)
+
+	Log.Infof("New order %s %s %s %s %s, strategy: ", orderId, symbol, side, price, orderQty, orderConfig.Strategy)
+
 	switch orderConfig.Strategy {
 	case Accept:
 		executeOrder(orderId, symbol, side, price, orderQty, id)
 	case Reject:
 		fallthrough
 	default:
-		sendRejectEr(orderId, side, id)
-
+		sendRejectEr(orderId, symbol, side, id)
 	}
 
 }
@@ -99,7 +100,7 @@ func executeOrder(orderId string, symbol string, side enum.Side, price decimal.D
 	//todo
 }
 
-func sendRejectEr(orderId string, side enum.Side, id quickfix.SessionID) {
+func sendRejectEr(orderId string, symbol string, side enum.Side, id quickfix.SessionID) {
 	executionReport := er.New(
 		field.NewOrderID(orderId),
 		field.NewExecID(nextExecId.getNext()),
@@ -110,5 +111,9 @@ func sendRejectEr(orderId string, side enum.Side, id quickfix.SessionID) {
 		field.NewCumQty(decimal.NewFromInt(0), 4),
 		field.NewAvgPx(decimal.NewFromInt(0), 4),
 	)
+	executionReport.SetClOrdID(orderId)
+	executionReport.SetTransactTime(time.Now())
+	executionReport.SetSymbol(symbol)
+
 	quickfix.SendToTarget(executionReport, id)
 }

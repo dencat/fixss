@@ -17,7 +17,7 @@ import (
 
 var quotes = map[string]string{}
 var orderStatuses = map[string]enum.OrdStatus{}
-
+var someMapMutex = sync.RWMutex{}
 var mux = sync.Mutex{}
 
 type TradeClient struct {
@@ -144,11 +144,16 @@ func queryMarketDataRequest(symbol string) fix44mdr.MarketDataRequest {
 func (e *TradeClient) OnExecutionReport(msg er.ExecutionReport, id quickfix.SessionID) quickfix.MessageRejectError {
 	orderId, _ := msg.GetOrderID()
 	status, _ := msg.GetOrdStatus()
+	someMapMutex.Lock()
+	defer someMapMutex.Unlock()
 	orderStatuses[orderId] = status
+
 	return nil
 }
 
 func (e *TradeClient) GetOrderStatus(key string) enum.OrdStatus {
+	someMapMutex.RLock()
+	defer someMapMutex.RUnlock()
 	if res, ok := orderStatuses[key]; ok {
 		return res
 	}
