@@ -1,0 +1,35 @@
+{
+  "console": {
+    "enable": true,
+    "level": "INFO"
+  },
+  "files": [
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "./App.log",
+      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+    },
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "outgoing.log",
+      "category": "outgoing",
+      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+    },
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "incoming.log",
+      "category": "incoming",
+      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+    },
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "event.log",
+      "category": "event",
+      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+    }
+  ]
+}

@@ -3,19 +3,22 @@
   "interval": 100,
   "entities": [
     {
-      "size": 1000,
+      "size": 1000000,
       "direction": "bid",
-      "price": 1.03
+      "minPrice": 1.051,
+      "maxPrice": 1.051
     },
     {
       "size": 1000,
       "direction": "offer",
-      "price": 1.25
+      "minPrice": 1.251,
+      "maxPrice": 1.251
     },
     {
-      "size": 1000000,
+      "size": 1000,
       "direction": "bid",
-      "price": 1.05
+      "minPrice": 1.031,
+      "maxPrice": 1.031
     }
   ]
 }

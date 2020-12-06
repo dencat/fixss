@@ -2,27 +2,23 @@ package fixss
 
 import (
 	"fmt"
-	"github.com/juju/loggo"
+	log "github.com/jeanphorn/log4go"
 	"github.com/quickfixgo/quickfix"
 )
-
-var Log = loggo.GetLogger("")
-
-var fixLogger = loggo.GetLogger("fix")
 
 type fixLog struct {
 }
 
 func (l fixLog) OnIncoming(s []byte) {
-	fixLogger.Debugf("incoming ", string(s))
+	log.LOGGER("incoming").Info(string(s))
 }
 
 func (l fixLog) OnOutgoing(s []byte) {
-	fixLogger.Debugf("outgoing ", string(s))
+	log.LOGGER("outgoing").Info(string(s))
 }
 
 func (l fixLog) OnEvent(s string) {
-	fixLogger.Infof("event ", s)
+	log.LOGGER("event").Info(s)
 }
 
 func (l fixLog) OnEventf(format string, a ...interface{}) {

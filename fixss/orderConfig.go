@@ -1,5 +1,7 @@
 package fixss
 
+import log "github.com/jeanphorn/log4go"
+
 type StrategyType string
 
 var orderConfigs = map[string]OrderConfig{}
@@ -30,6 +32,6 @@ func GetOrderConfig(symbol string) OrderConfig {
 }
 
 func SetOrderConfig(orderConfig OrderConfig) {
-	Log.Infof("Set order config %s", orderConfig)
+	log.Info("Set order config %s", orderConfig)
 	orderConfigs[orderConfig.Symbol] = orderConfig
 }

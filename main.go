@@ -1,25 +1,33 @@
 package main
 
 import (
+	"flag"
 	"github.com/dencat/fixss/fixss"
-	"github.com/juju/loggo"
+	log "github.com/jeanphorn/log4go"
 	"os"
 	"os/signal"
 )
 
 func main() {
-	loggo.GetLogger("").SetLogLevel(loggo.INFO)
-	loggo.GetLogger("fix").SetLogLevel(loggo.INFO)
+	log.LoadConfiguration("./config/log.json")
 
-	fixss.Log.Infof("Start application")
+	log.Info("Start application")
+
+	port := 8080
+	webServerPortPtr := flag.Int("port", port, "control port")
+	flag.Parse()
+
+	if webServerPortPtr != nil {
+		port = *webServerPortPtr
+	}
 
 	fixss.LoadDefaultQuoteConfig()
 
-	fixss.StartWebServer()
+	fixss.StartWebServer(port)
 
 	err := fixss.StartAcceptor()
 	if err != nil {
-		fixss.Log.Errorf("Can't start acceptor ", err)
+		log.Error("Can't start acceptor ", err)
 		return
 	}
 	interrupt := make(chan os.Signal)
@@ -27,4 +35,6 @@ func main() {
 	<-interrupt
 
 	fixss.StopAcceptor()
+
+	log.Close()
 }

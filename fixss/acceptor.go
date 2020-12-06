@@ -1,6 +1,7 @@
 package fixss
 
 import (
+	"github.com/dencat/fixss/fixss/store"
 	"github.com/quickfixgo/quickfix"
 	"os"
 )
@@ -23,7 +24,7 @@ func StartAcceptor() error {
 	logFactory := NewFixLogFactory()
 	executor := CreateExecutor()
 
-	acceptor, err = quickfix.NewAcceptor(executor, quickfix.NewMemoryStoreFactory(), settings, logFactory)
+	acceptor, err = quickfix.NewAcceptor(executor, store.NewFixMemoryStoreFactory(), settings, logFactory)
 	if err != nil {
 		return err
 	}

@@ -50,13 +50,13 @@ func testServer(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/v1/quoteConfig", nil)
 	router.ServeHTTP(w, req)
 	asrt.Equal(200, w.Code)
-	asrt.Equal("{}\n", w.Body.String())
+	asrt.Equal("{}", w.Body.String())
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("POST", "/api/v1/quoteConfig", strings.NewReader("a"))
 	router.ServeHTTP(w, req)
 	asrt.Equal(400, w.Code)
-	asrt.Equal("{\"status\":\"error\"}\n", w.Body.String())
+	asrt.Equal("{\"status\":\"error\"}", w.Body.String())
 
 	fixss.LoadDefaultQuoteConfig()
 	content, err := ioutil.ReadFile("get_quote_config_expected_1.json")
@@ -77,13 +77,13 @@ func testServer(t *testing.T) {
 	req, _ = http.NewRequest("POST", "/api/v1/quoteConfig", strings.NewReader(string(content)))
 	router.ServeHTTP(w, req)
 	asrt.Equal(200, w.Code)
-	asrt.Equal("{\"status\":\"ok\"}\n", w.Body.String())
+	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/v1/quoteConfig", nil)
 	router.ServeHTTP(w, req)
 	asrt.Equal(200, w.Code)
-	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"interval\":100,\"entities\":[{\"size\":1000,\"direction\":\"bid\",\"price\":1.03},{\"size\":1000,\"direction\":\"offer\",\"price\":1.25},{\"size\":1000000,\"direction\":\"bid\",\"price\":1.05}]}}\n", w.Body.String())
+	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"interval\":100,\"entities\":[{\"size\":1000,\"direction\":\"bid\",\"minPrice\":1.031,\"maxPrice\":1.031},{\"size\":1000,\"direction\":\"offer\",\"minPrice\":1.251,\"maxPrice\":1.251},{\"size\":1000000,\"direction\":\"bid\",\"minPrice\":1.051,\"maxPrice\":1.051}]}}", w.Body.String())
 
 	asrt.Equal(true, fixss.GetQuoteConfig("EUR/USD_TOD") == nil)
 	asrt.Equal(true, fixss.GetQuoteConfig("EUR/USD_TOM") != nil)
@@ -93,9 +93,9 @@ func testServer(t *testing.T) {
 	clientApp.SendMarketDataRequest("EUR/USD_TOM")
 
 	for {
-		if clientApp.GetLastQuote("EUR/USD_TOM_0_1000") == "1.03" &&
-			clientApp.GetLastQuote("EUR/USD_TOM_1_1000") == "1.25" &&
-			clientApp.GetLastQuote("EUR/USD_TOM_0_1000000") == "1.05" {
+		if clientApp.GetLastQuote("EUR/USD_TOM_0_1000") == "1.031" &&
+			clientApp.GetLastQuote("EUR/USD_TOM_1_1000") == "1.251" &&
+			clientApp.GetLastQuote("EUR/USD_TOM_0_1000000") == "1.051" {
 			break
 		}
 	}
@@ -108,19 +108,33 @@ func testServer(t *testing.T) {
 	req, _ = http.NewRequest("POST", "/api/v1/orderConfig", strings.NewReader(string(content)))
 	router.ServeHTTP(w, req)
 	asrt.Equal(200, w.Code)
-	asrt.Equal("{\"status\":\"ok\"}\n", w.Body.String())
+	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/v1/orderConfig", nil)
 	router.ServeHTTP(w, req)
 	asrt.Equal(200, w.Code)
-	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"strategy\":\"reject\"}}\n", w.Body.String())
+	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"strategy\":\"reject\"}}", w.Body.String())
 
 	asrt.Equal(fixss.Reject, fixss.GetOrderConfig("EUR/USD_TOM").Strategy)
 	clientApp.SendOrder("123", "EUR/USD_TOM", decimal.NewFromInt(1500), decimal.NewFromFloat(1.05))
 
 	for {
 		if clientApp.GetOrderStatus("123") == enum.OrdStatus_REJECTED {
+			break
+		}
+	}
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/v1/orderConfig", strings.NewReader("{\"symbol\":\"EUR/USD_TOM\",\"strategy\":\"accept\"}"))
+	router.ServeHTTP(w, req)
+	asrt.Equal(200, w.Code)
+	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())
+	asrt.Equal(fixss.Accept, fixss.GetOrderConfig("EUR/USD_TOM").Strategy)
+
+	clientApp.SendOrder("456", "EUR/USD_TOM", decimal.NewFromInt(10000000), decimal.NewFromFloat(1.05))
+	for {
+		if clientApp.GetOrderStatus("456") == enum.OrdStatus_REJECTED {
 			break
 		}
 	}

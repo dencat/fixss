@@ -1,6 +1,7 @@
 package fixss
 
 import (
+	log "github.com/jeanphorn/log4go"
 	"github.com/quickfixgo/enum"
 	"github.com/quickfixgo/field"
 	er "github.com/quickfixgo/fix44/executionreport"
@@ -83,24 +84,32 @@ func processOrder(msg nos.NewOrderSingle, id quickfix.SessionID) {
 
 	orderConfig := GetOrderConfig(symbol)
 
-	Log.Infof("New order %s %s %s %s %s, strategy: ", orderId, symbol, side, price, orderQty, orderConfig.Strategy)
+	log.Info("New order %s %s %s %s %s, strategy: ", orderId, symbol, side, price, orderQty, orderConfig.Strategy)
 
 	switch orderConfig.Strategy {
 	case Accept:
-		executeOrder(orderId, symbol, side, price, orderQty, id)
+		tryToExecuteOrder(orderId, symbol, side, price, orderQty, id)
 	case Reject:
 		fallthrough
 	default:
-		sendRejectEr(orderId, symbol, side, id)
+		sendRejectEr(orderId, symbol, side, id, "reject all orders")
 	}
 
 }
 
-func executeOrder(orderId string, symbol string, side enum.Side, price decimal.Decimal, qty decimal.Decimal, session quickfix.SessionID) {
-	//todo
+func tryToExecuteOrder(orderId string, symbol string, side enum.Side, price decimal.Decimal, qty decimal.Decimal, session quickfix.SessionID) {
+	size, _ := qty.Float64()
+	marketPrice := GetMarketPrice(symbol, side, size)
+	if marketPrice == nil {
+		log.Info("Reject order %s because there is no market price", orderId)
+		sendRejectEr(orderId, symbol, side, session, "no market price")
+		return
+	}
+
+	sendRejectEr(orderId, symbol, side, session, "not implement yet")
 }
 
-func sendRejectEr(orderId string, symbol string, side enum.Side, id quickfix.SessionID) {
+func sendRejectEr(orderId string, symbol string, side enum.Side, session quickfix.SessionID, reason string) {
 	executionReport := er.New(
 		field.NewOrderID(orderId),
 		field.NewExecID(nextExecId.getNext()),
@@ -114,6 +123,10 @@ func sendRejectEr(orderId string, symbol string, side enum.Side, id quickfix.Ses
 	executionReport.SetClOrdID(orderId)
 	executionReport.SetTransactTime(time.Now())
 	executionReport.SetSymbol(symbol)
+	executionReport.SetText(reason)
 
-	quickfix.SendToTarget(executionReport, id)
+	err := quickfix.SendToTarget(executionReport, session)
+	if err != nil {
+		log.Error("Can't send Execution report %s", err.Error())
+	}
 }
