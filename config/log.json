@@ -8,6 +8,7 @@
       "enable": true,
       "level": "INFO",
       "filename": "./App.log",
+      "category": "app",
       "pattern": "[%D %T] [%C] [%L] (%S) %M"
     },
     {

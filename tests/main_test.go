@@ -2,6 +2,7 @@ package tests
 
 import (
 	"github.com/dencat/fixss/fixss"
+	"github.com/gin-gonic/gin"
 	"github.com/quickfixgo/enum"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
@@ -69,15 +70,7 @@ func testServer(t *testing.T) {
 	asrt.Equal(200, w.Code)
 	asrt.Equal(removeAllWhiteSpace(string(content)), removeAllWhiteSpace(w.Body.String()))
 
-	content, err = ioutil.ReadFile("set_quotes.json")
-	if err != nil {
-		assert.Fail(t, err.Error())
-	}
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("POST", "/api/v1/quoteConfig", strings.NewReader(string(content)))
-	router.ServeHTTP(w, req)
-	asrt.Equal(200, w.Code)
-	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())
+	sendPostFromFile("set_quotes.json", t, router, asrt)
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/v1/quoteConfig", nil)
@@ -91,6 +84,24 @@ func testServer(t *testing.T) {
 	asrt.Equal(3, len(fixss.GetQuoteConfig("EUR/USD_TOM").Entities))
 
 	clientApp.SendMarketDataRequest("EUR/USD_TOM")
+
+	for {
+		if clientApp.GetLastQuote("EUR/USD_TOM_0_1000") == "1.031" &&
+			clientApp.GetLastQuote("EUR/USD_TOM_1_1000") == "1.251" &&
+			clientApp.GetLastQuote("EUR/USD_TOM_0_1000000") == "1.051" {
+			break
+		}
+	}
+
+	sendPostFromFile("set_empty_quotes.json", t, router, asrt)
+
+	for {
+		if clientApp.GetLastQuote("EUR/USD_TOM") == "drop" {
+			break
+		}
+	}
+
+	sendPostFromFile("set_quotes.json", t, router, asrt)
 
 	for {
 		if clientApp.GetLastQuote("EUR/USD_TOM_0_1000") == "1.031" &&
@@ -141,6 +152,18 @@ func testServer(t *testing.T) {
 
 	client.Stop()
 	fixss.StopAcceptor()
+}
+
+func sendPostFromFile(filePath string, t *testing.T, router *gin.Engine, asrt *assert.Assertions) {
+	content, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/v1/quoteConfig", strings.NewReader(string(content)))
+	router.ServeHTTP(w, req)
+	asrt.Equal(200, w.Code)
+	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())
 }
 
 func removeAllWhiteSpace(str string) string {

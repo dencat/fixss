@@ -24,7 +24,7 @@ type QuoteConfig struct {
 }
 
 func LoadDefaultQuoteConfig() {
-	quoteConfigs["EUR/USD_TOM"] = QuoteConfig{
+	SetQuoteConfig(QuoteConfig{
 		Symbol:   "EUR/USD_TOM",
 		Interval: 10000,
 		Entities: []entity{
@@ -32,7 +32,7 @@ func LoadDefaultQuoteConfig() {
 			{Size: 1000, Direction: OFFER, MinPrice: 1.2, MaxPrice: 1.21},
 			{Size: 1000000, Direction: BID, MinPrice: 1.05, MaxPrice: 1.07},
 		},
-	}
+	})
 }
 
 func GetQuoteConfig(symbol string) *QuoteConfig {

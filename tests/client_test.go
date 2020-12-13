@@ -7,6 +7,7 @@ import (
 	er "github.com/quickfixgo/fix44/executionreport"
 	fix44mkdir "github.com/quickfixgo/fix44/marketdataincrementalrefresh"
 	fix44mdr "github.com/quickfixgo/fix44/marketdatarequest"
+	fix44full "github.com/quickfixgo/fix44/marketdatasnapshotfullrefresh"
 	nos "github.com/quickfixgo/fix44/newordersingle"
 	"github.com/quickfixgo/quickfix"
 	"github.com/shopspring/decimal"
@@ -89,6 +90,19 @@ func (e *TradeClient) OnMarketDataIncrementalRefresh(msg fix44mkdir.MarketDataIn
 	return nil
 }
 
+func (e *TradeClient) OnMarketDataSnapshotFullRefresh(msg fix44full.MarketDataSnapshotFullRefresh, id quickfix.SessionID) quickfix.MessageRejectError {
+	mux.Lock()
+	defer mux.Unlock()
+
+	symbol, _ := msg.GetSymbol()
+	groups, _ := msg.GetNoMDEntries()
+	if groups.Len() == 0 {
+		quotes[symbol] = "drop"
+	}
+
+	return nil
+}
+
 func (e *TradeClient) GetLastQuote(key string) string {
 	mux.Lock()
 	defer mux.Unlock()
@@ -111,6 +125,7 @@ func CreateInitiator(loginDone chan bool) (*quickfix.Initiator, *TradeClient, er
 		loginDone:     loginDone,
 	}
 	app.AddRoute(fix44mkdir.Route(app.OnMarketDataIncrementalRefresh))
+	app.AddRoute(fix44full.Route(app.OnMarketDataSnapshotFullRefresh))
 	app.AddRoute(er.Route(app.OnExecutionReport))
 
 	fileLogFactory, err := quickfix.NewFileLogFactory(appSettings)

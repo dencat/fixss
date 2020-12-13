@@ -52,10 +52,10 @@ func startSendingMarketData(symbol string, id quickfix.SessionID) {
 		if !ok {
 			break
 		}
-		quoteConfig := GetQuoteConfig(symbol)
-		if quoteConfig != nil {
-			sendMarketData(symbol, *quoteConfig, id)
-			time.Sleep(time.Duration(quoteConfig.Interval * 1000000))
+		quotes, interval := GetNextQuotes(symbol)
+		if quotes != nil {
+			sendMarketData(symbol, quotes, id)
+			time.Sleep(time.Duration(interval * 1000000))
 		} else {
 			time.Sleep(10000 * time.Millisecond)
 		}
@@ -64,9 +64,9 @@ func startSendingMarketData(symbol string, id quickfix.SessionID) {
 	log.Info("Finish sending quotes %s to %s", symbol, id)
 }
 
-func sendMarketData(symbol string, config QuoteConfig, id quickfix.SessionID) {
-	if len(config.Entities) == 0 {
-		sendDropQuote(symbol, config, id)
+func sendMarketData(symbol string, quotes []Quote, sessionId quickfix.SessionID) {
+	if len(quotes) == 0 {
+		sendDropQuote(symbol, sessionId)
 		return
 	}
 	res := fix44mkdir.New()
@@ -74,16 +74,15 @@ func sendMarketData(symbol string, config QuoteConfig, id quickfix.SessionID) {
 	res.SetMDReqID(symbol + "0000")
 	group := fix44mkdir.NewNoMDEntriesRepeatingGroup()
 	quoteId := 0
-	for _, entity := range config.Entities {
+	for _, quote := range quotes {
 		entry := group.Add()
 		entry.SetMDUpdateAction(enum.MDUpdateAction_CHANGE)
 		entry.SetSymbol(symbol)
-		entry.SetMDEntrySize(decimal.NewFromFloat(entity.Size), 4)
-		price := entity.MinPrice + rand.Float64()*(entity.MaxPrice-entity.MinPrice)
-		entry.SetMDEntryPx(decimal.NewFromFloat(price), 4)
+		entry.SetMDEntrySize(decimal.NewFromFloat(quote.Size), 4)
+		entry.SetMDEntryPx(quote.price, 4)
 		entry.SetMDEntryRefID(strconv.Itoa(quoteId))
 		quoteId = quoteId + 1
-		if entity.Direction == BID {
+		if quote.Direction == BID {
 			entry.SetMDEntryType(enum.MDEntryType_BID)
 		} else {
 			entry.SetMDEntryType(enum.MDEntryType_OFFER)
@@ -91,10 +90,10 @@ func sendMarketData(symbol string, config QuoteConfig, id quickfix.SessionID) {
 	}
 
 	res.SetNoMDEntries(group)
-	quickfix.SendToTarget(res.ToMessage(), id)
+	quickfix.SendToTarget(res.ToMessage(), sessionId)
 }
 
-func sendDropQuote(symbol string, config QuoteConfig, id quickfix.SessionID) {
+func sendDropQuote(symbol string, id quickfix.SessionID) {
 	res := fix44mkfull.New()
 	res.SetMDReqID(symbol + "0000")
 	res.SetSymbol(symbol)
