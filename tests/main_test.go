@@ -32,7 +32,9 @@ func TestWithTimeOut(t *testing.T) {
 func testServer(t *testing.T) {
 	asrt := assert.New(t)
 
-	err := fixss.StartAcceptor()
+	config := fixss.Config{}
+	config.Fix.Config = "./config/server.cfg"
+	err := fixss.StartAcceptor(&config)
 	asrt.NoError(err)
 
 	loginDone := make(chan bool, 1)
