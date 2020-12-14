@@ -9,28 +9,28 @@
       "level": "INFO",
       "filename": "./App.log",
       "category": "app",
-      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+      "pattern": "[%D %T] [%C] [%L] %M"
     },
     {
       "enable": true,
       "level": "INFO",
       "filename": "outgoing.log",
       "category": "outgoing",
-      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+      "pattern": "[%D %T] [%C] [%L] %M"
     },
     {
       "enable": true,
       "level": "INFO",
       "filename": "incoming.log",
       "category": "incoming",
-      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+      "pattern": "[%D %T] [%C] [%L] %M"
     },
     {
       "enable": true,
       "level": "INFO",
       "filename": "event.log",
       "category": "event",
-      "pattern": "[%D %T] [%C] [%L] (%S) %M"
+      "pattern": "[%D %T] [%C] [%L] %M"
     }
   ]
 }

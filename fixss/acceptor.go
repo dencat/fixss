@@ -6,17 +6,15 @@ import (
 	"os"
 )
 
-const CONFIG_PATH = "config/server.cfg"
-
 var acceptor *quickfix.Acceptor
 
-func StartAcceptor() error {
-	config, err := os.Open(CONFIG_PATH)
+func StartAcceptor(config *Config) error {
+	configFile, err := os.Open(config.Fix.Config)
 	if err != nil {
 		return err
 	}
 
-	settings, err := quickfix.ParseSettings(config)
+	settings, err := quickfix.ParseSettings(configFile)
 	if err != nil {
 		return err
 	}

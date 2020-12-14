@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/jeanphorn/log4go"
 	"net/http"
-	"strconv"
 )
 
 const API_PATH = "/api/v1/"
@@ -14,6 +13,7 @@ var statusOk = gin.H{"status": "ok"}
 var statusError = gin.H{"status": "error"}
 
 func CreateRouter() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	router.GET(API_PATH+"quoteConfig", getQuoteConfig)
@@ -28,10 +28,11 @@ func CreateRouter() *gin.Engine {
 	return router
 }
 
-func StartWebServer(port int) {
+func StartWebServer(config *Config) {
 	go func() {
 		router := CreateRouter()
-		router.Run(":" + strconv.Itoa(port))
+		log.LOGGER("app").Info("Start server: %s:%s", config.Server.Host, config.Server.Port)
+		router.Run(config.Server.Host + ":" + config.Server.Port)
 	}()
 }
 

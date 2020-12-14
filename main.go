@@ -9,25 +9,27 @@ import (
 )
 
 func main() {
-	log.LoadConfiguration("./config/log.json")
-
-	log.Info("Start application")
-
-	port := 8080
-	webServerPortPtr := flag.Int("port", port, "control port")
-	flag.Parse()
-
-	if webServerPortPtr != nil {
-		port = *webServerPortPtr
+	cfgPath, err := ParseFlags()
+	if err != nil {
+		println(err)
+		return
 	}
+	cfg, err := fixss.NewConfig(cfgPath)
+	if err != nil {
+		println(err)
+		return
+	}
+
+	log.LoadConfiguration(cfg.Logging.Config)
+	log.LOGGER("app").Info("Start application")
 
 	fixss.LoadDefaultQuoteConfig()
 
-	fixss.StartWebServer(port)
+	fixss.StartWebServer(cfg)
 
-	err := fixss.StartAcceptor()
+	err = fixss.StartAcceptor(cfg)
 	if err != nil {
-		log.Error("Can't start acceptor ", err)
+		log.LOGGER("app").Error("Can't start acceptor ", err)
 		return
 	}
 	interrupt := make(chan os.Signal)
@@ -37,4 +39,17 @@ func main() {
 	fixss.StopAcceptor()
 
 	log.Close()
+}
+
+func ParseFlags() (string, error) {
+	var configPath string
+
+	flag.StringVar(&configPath, "config", "./config/config.yml", "path to config file")
+	flag.Parse()
+
+	if err := fixss.ValidateConfigPath(configPath); err != nil {
+		return "", err
+	}
+
+	return configPath, nil
 }
