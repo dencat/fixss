@@ -34,6 +34,7 @@ func testServer(t *testing.T) {
 
 	config := fixss.Config{}
 	config.Fix.Config = "./config/server.cfg"
+	config.Quote.Config = "./config/quoteDefaultConfig.json"
 	err := fixss.StartAcceptor(&config)
 	asrt.NoError(err)
 
@@ -61,7 +62,11 @@ func testServer(t *testing.T) {
 	asrt.Equal(400, w.Code)
 	asrt.Equal("{\"status\":\"error\"}", w.Body.String())
 
-	fixss.LoadDefaultQuoteConfig()
+	err = fixss.LoadDefaultQuoteConfig(&config)
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+
 	content, err := ioutil.ReadFile("get_quote_config_expected_1.json")
 	if err != nil {
 		assert.Fail(t, err.Error())

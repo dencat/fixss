@@ -21,9 +21,14 @@ func main() {
 	}
 
 	log.LoadConfiguration(cfg.Logging.Config)
+	defer log.Close()
 	log.LOGGER("app").Info("Start application")
 
-	fixss.LoadDefaultQuoteConfig()
+	err = fixss.LoadDefaultQuoteConfig(cfg)
+	if err != nil {
+		log.LOGGER("app").Error("Can't load default quote config: %s", err)
+		return
+	}
 
 	fixss.StartWebServer(cfg)
 
@@ -38,7 +43,6 @@ func main() {
 
 	fixss.StopAcceptor()
 
-	log.Close()
 }
 
 func ParseFlags() (string, error) {

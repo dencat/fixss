@@ -1,0 +1,50 @@
+[
+  {
+    "symbol": "EUR/USD_TOD",
+    "interval": 10000,
+    "entities": [
+      {
+        "size": 1000000,
+        "direction": "bid",
+        "minPrice": 1.049,
+        "maxPrice": 1.052
+      },
+      {
+        "size": 1000000,
+        "direction": "offer",
+        "minPrice": 1.240,
+        "maxPrice": 1.249
+      }
+    ]
+  },
+  {
+    "symbol": "EUR/USD_TOM",
+    "interval": 10000,
+    "entities": [
+      {
+        "size": 1000000,
+        "direction": "bid",
+        "minPrice": 1.050,
+        "maxPrice": 1.059
+      },
+      {
+        "size": 1000000,
+        "direction": "offer",
+        "minPrice": 1.250,
+        "maxPrice": 1.259
+      },
+      {
+        "size": 5000000,
+        "direction": "bid",
+        "minPrice": 1.030,
+        "maxPrice": 1.039
+      },
+      {
+        "size": 5000000,
+        "direction": "offer",
+        "minPrice": 1.330,
+        "maxPrice": 1.339
+      }
+    ]
+  }
+]

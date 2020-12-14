@@ -7,3 +7,6 @@ logging:
 
 fix:
   config: "./config/server.cfg"
+
+quote:
+  defaultConfig: "./config/quoteDefaultConfig.json"

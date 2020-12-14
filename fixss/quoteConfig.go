@@ -1,7 +1,12 @@
 package fixss
 
 import (
+	"encoding/json"
+	"errors"
+	log "github.com/jeanphorn/log4go"
 	"github.com/quickfixgo/enum"
+	"io/ioutil"
+	"os"
 	"sort"
 )
 
@@ -23,16 +28,30 @@ type QuoteConfig struct {
 	Entities []entity `json:"entities"`
 }
 
-func LoadDefaultQuoteConfig() {
-	SetQuoteConfig(QuoteConfig{
-		Symbol:   "EUR/USD_TOM",
-		Interval: 10000,
-		Entities: []entity{
-			{Size: 1000, Direction: BID, MinPrice: 1.1, MaxPrice: 1.11},
-			{Size: 1000, Direction: OFFER, MinPrice: 1.2, MaxPrice: 1.21},
-			{Size: 1000000, Direction: BID, MinPrice: 1.05, MaxPrice: 1.07},
-		},
-	})
+func LoadDefaultQuoteConfig(config *Config) error {
+	if len(config.Quote.Config) > 0 {
+		if !FileExists(config.Quote.Config) {
+			return errors.New("File " + config.Quote.Config + " not found")
+		}
+		jsonFile, err := os.Open(config.Quote.Config)
+		if err != nil {
+			return err
+		}
+		defer jsonFile.Close()
+		data, _ := ioutil.ReadAll(jsonFile)
+		var quoteConfigs []QuoteConfig
+		err = json.Unmarshal(data, &quoteConfigs)
+		if err != nil {
+			return err
+		}
+
+		log.LOGGER("app").Info("Load default quote config from: %s", config.Quote.Config)
+
+		for _, c := range quoteConfigs {
+			SetQuoteConfig(c)
+		}
+	}
+	return nil
 }
 
 func GetQuoteConfig(symbol string) *QuoteConfig {

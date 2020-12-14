@@ -17,6 +17,9 @@ type Config struct {
 	Fix struct {
 		Config string `yaml:"config"`
 	}
+	Quote struct {
+		Config string `yaml:"defaultConfig"`
+	}
 }
 
 func NewConfig(configPath string) (*Config, error) {
