@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	log "github.com/jeanphorn/log4go"
-	"github.com/quickfixgo/enum"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -71,23 +70,4 @@ func SetQuoteConfig(quoteConfig QuoteConfig) {
 
 		return quoteConfig.Entities[i].Size < quoteConfig.Entities[j].Size
 	})
-}
-
-func GetMarketPrice(symbol string, side enum.Side, size float64) *float64 {
-	var res *float64 = nil
-	if config, ok := quoteConfigs[symbol]; ok {
-		for _, entity := range config.Entities {
-			if size > entity.Size {
-				continue
-			}
-			if entity.Direction == BID && side == enum.Side_BUY {
-				continue
-			}
-			if entity.Direction == OFFER && side == enum.Side_SELL {
-				continue
-			}
-			return &entity.MinPrice
-		}
-	}
-	return res
 }

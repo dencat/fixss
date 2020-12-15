@@ -20,14 +20,14 @@ var sessions = map[quickfix.SessionID]quoteSession{}
 
 func CreateQuoteSession(sessionID quickfix.SessionID) {
 	rand.Seed(time.Now().UnixNano())
-	log.Info("Create session %s", sessionID)
+	log.LOGGER("app").Info("Create session %s", sessionID)
 	sessions[sessionID] = quoteSession{
 		map[string]bool{},
 	}
 }
 
 func RemoveQuoteSession(sessionID quickfix.SessionID) {
-	log.Info("Remove session %s", sessionID)
+	log.LOGGER("app").Info("Remove session %s", sessionID)
 	delete(sessions, sessionID)
 }
 

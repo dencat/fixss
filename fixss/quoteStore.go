@@ -1,6 +1,7 @@
 package fixss
 
 import (
+	"github.com/quickfixgo/enum"
 	"github.com/shopspring/decimal"
 	"math/rand"
 )
@@ -10,6 +11,8 @@ type Quote struct {
 	Size      float64
 	Direction string
 }
+
+var quoteStore = map[string][]Quote{}
 
 func GetNextQuotes(symbol string) ([]Quote, int64) {
 	quoteConfig := GetQuoteConfig(symbol)
@@ -26,6 +29,26 @@ func GetNextQuotes(symbol string) ([]Quote, int64) {
 		}
 		quotes = append(quotes, quote)
 	}
+	quoteStore[symbol] = quotes
 
 	return quotes, quoteConfig.Interval
+}
+
+func GetMarketQuote(symbol string, side enum.Side, size float64) *Quote {
+	var res *Quote = nil
+	if quotes, ok := quoteStore[symbol]; ok {
+		for _, quote := range quotes {
+			if size > quote.Size {
+				continue
+			}
+			if quote.Direction == BID && side == enum.Side_BUY {
+				continue
+			}
+			if quote.Direction == OFFER && side == enum.Side_SELL {
+				continue
+			}
+			return &quote
+		}
+	}
+	return res
 }

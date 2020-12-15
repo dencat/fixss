@@ -6,19 +6,22 @@ import (
 	"github.com/quickfixgo/quickfix"
 )
 
+const CAT_APP = "app"
+
 type fixLog struct {
+	qualifier string
 }
 
 func (l fixLog) OnIncoming(s []byte) {
-	log.LOGGER("incoming").Info(string(s))
+	log.LOGGER("incoming " + l.qualifier).Info(string(s))
 }
 
 func (l fixLog) OnOutgoing(s []byte) {
-	log.LOGGER("outgoing").Info(string(s))
+	log.LOGGER("outgoing " + l.qualifier).Info(string(s))
 }
 
 func (l fixLog) OnEvent(s string) {
-	log.LOGGER("event").Info(s)
+	log.LOGGER("event " + l.qualifier).Info(s)
 }
 
 func (l fixLog) OnEventf(format string, a ...interface{}) {
@@ -28,11 +31,11 @@ func (l fixLog) OnEventf(format string, a ...interface{}) {
 type fxLogFactory struct{}
 
 func (fxLogFactory) Create() (quickfix.Log, error) {
-	return fixLog{}, nil
+	return fixLog{"default"}, nil
 }
 
 func (fxLogFactory) CreateSessionLog(sessionID quickfix.SessionID) (quickfix.Log, error) {
-	return fixLog{}, nil
+	return fixLog{sessionID.Qualifier}, nil
 }
 
 func NewFixLogFactory() quickfix.LogFactory {

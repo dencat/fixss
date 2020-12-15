@@ -77,7 +77,7 @@ func testServer(t *testing.T) {
 	asrt.Equal(200, w.Code)
 	asrt.Equal(removeAllWhiteSpace(string(content)), removeAllWhiteSpace(w.Body.String()))
 
-	sendPostFromFile("set_quotes.json", t, router, asrt)
+	sendPostFromFile("/api/v1/quoteConfig", "set_quote.json", t, router, asrt)
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/v1/quoteConfig", nil)
@@ -100,7 +100,7 @@ func testServer(t *testing.T) {
 		}
 	}
 
-	sendPostFromFile("set_empty_quotes.json", t, router, asrt)
+	sendPostFromFile("/api/v1/quoteConfig", "set_empty_quotes.json", t, router, asrt)
 
 	for {
 		if clientApp.GetLastQuote("EUR/USD_TOM") == "drop" {
@@ -108,7 +108,7 @@ func testServer(t *testing.T) {
 		}
 	}
 
-	sendPostFromFile("set_quotes.json", t, router, asrt)
+	sendPostFromFile("/api/v1/quoteConfigs", "set_quotes.json", t, router, asrt)
 
 	for {
 		if clientApp.GetLastQuote("EUR/USD_TOM_0_1000") == "1.031" &&
@@ -118,15 +118,7 @@ func testServer(t *testing.T) {
 		}
 	}
 
-	content, err = ioutil.ReadFile("set_order_config.json")
-	if err != nil {
-		assert.Fail(t, err.Error())
-	}
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("POST", "/api/v1/orderConfig", strings.NewReader(string(content)))
-	router.ServeHTTP(w, req)
-	asrt.Equal(200, w.Code)
-	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())
+	sendPostFromFile("/api/v1/orderConfig", "set_order_config_reject.json", t, router, asrt)
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("GET", "/api/v1/orderConfig", nil)
@@ -135,13 +127,8 @@ func testServer(t *testing.T) {
 	asrt.Equal("{\"EUR/USD_TOM\":{\"symbol\":\"EUR/USD_TOM\",\"strategy\":\"reject\"}}", w.Body.String())
 
 	asrt.Equal(fixss.Reject, fixss.GetOrderConfig("EUR/USD_TOM").Strategy)
-	clientApp.SendOrder("123", "EUR/USD_TOM", decimal.NewFromInt(1500), decimal.NewFromFloat(1.05))
-
-	for {
-		if clientApp.GetOrderStatus("123") == enum.OrdStatus_REJECTED {
-			break
-		}
-	}
+	clientApp.SendOrder("111", "EUR/USD_TOM", decimal.NewFromInt(1500), decimal.NewFromFloat(1.05), "1")
+	waitOrderStatus(clientApp, "111", enum.OrdStatus_REJECTED)
 
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest("POST", "/api/v1/orderConfig", strings.NewReader("{\"symbol\":\"EUR/USD_TOM\",\"strategy\":\"accept\"}"))
@@ -150,24 +137,37 @@ func testServer(t *testing.T) {
 	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())
 	asrt.Equal(fixss.Accept, fixss.GetOrderConfig("EUR/USD_TOM").Strategy)
 
-	clientApp.SendOrder("456", "EUR/USD_TOM", decimal.NewFromInt(10000000), decimal.NewFromFloat(1.05))
-	for {
-		if clientApp.GetOrderStatus("456") == enum.OrdStatus_REJECTED {
-			break
-		}
-	}
+	clientApp.SendOrder("222", "EUR/USD_TOM", decimal.NewFromInt(10000000), decimal.NewFromFloat(1.3), enum.Side_BUY)
+	waitOrderStatus(clientApp, "222", enum.OrdStatus_REJECTED)
+
+	clientApp.SendOrder("333", "EUR/USD_TOM", decimal.NewFromInt(500), decimal.NewFromFloat(1.249), enum.Side_BUY)
+	waitOrderStatus(clientApp, "333", enum.OrdStatus_REJECTED)
+
+	clientApp.SendOrder("444", "EUR/USD_TOM", decimal.NewFromInt(500), decimal.NewFromFloat(1.251), enum.Side_BUY)
+	waitOrderStatus(clientApp, "444", enum.OrdStatus_FILLED)
+
+	clientApp.SendOrder("555", "EUR/USD_TOM", decimal.NewFromInt(500), decimal.NewFromFloat(1.26), enum.Side_BUY)
+	waitOrderStatus(clientApp, "555", enum.OrdStatus_FILLED)
 
 	client.Stop()
 	fixss.StopAcceptor()
 }
 
-func sendPostFromFile(filePath string, t *testing.T, router *gin.Engine, asrt *assert.Assertions) {
+func waitOrderStatus(clientApp *TradeClient, orderId string, status enum.OrdStatus) {
+	for {
+		if clientApp.GetOrderStatus(orderId) == status {
+			break
+		}
+	}
+}
+
+func sendPostFromFile(apiPath string, filePath string, t *testing.T, router *gin.Engine, asrt *assert.Assertions) {
 	content, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/api/v1/quoteConfig", strings.NewReader(string(content)))
+	req, _ := http.NewRequest("POST", apiPath, strings.NewReader(string(content)))
 	router.ServeHTTP(w, req)
 	asrt.Equal(200, w.Code)
 	asrt.Equal("{\"status\":\"ok\"}", w.Body.String())

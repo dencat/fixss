@@ -7,29 +7,57 @@
     {
       "enable": true,
       "level": "INFO",
-      "filename": "./App.log",
+      "filename": "logs/App.log",
       "category": "app",
       "pattern": "[%D %T] [%C] [%L] %M"
     },
     {
       "enable": true,
       "level": "INFO",
-      "filename": "outgoing.log",
-      "category": "outgoing",
+      "filename": "logs/market_data.log",
+      "category": "outgoing Market Data",
       "pattern": "[%D %T] [%C] [%L] %M"
     },
     {
       "enable": true,
       "level": "INFO",
-      "filename": "incoming.log",
-      "category": "incoming",
+      "filename": "logs/market_data.log",
+      "category": "incoming Market Data",
       "pattern": "[%D %T] [%C] [%L] %M"
     },
     {
       "enable": true,
       "level": "INFO",
-      "filename": "event.log",
-      "category": "event",
+      "filename": "logs/trade.log",
+      "category": "outgoing Trade",
+      "pattern": "[%D %T] [%C] [%L] %M"
+    },
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "logs/trade.log",
+      "category": "incoming Trade",
+      "pattern": "[%D %T] [%C] [%L] %M"
+    },
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "logs/event.log",
+      "category": "event Market Data",
+      "pattern": "[%D %T] [%C] [%L] %M"
+    },
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "logs/event.log",
+      "category": "event Trade",
+      "pattern": "[%D %T] [%C] [%L] %M"
+    },
+    {
+      "enable": true,
+      "level": "INFO",
+      "filename": "logs/event.log",
+      "category": "event default",
       "pattern": "[%D %T] [%C] [%L] %M"
     }
   ]

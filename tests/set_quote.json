@@ -1,0 +1,24 @@
+{
+  "symbol": "EUR/USD_TOM",
+  "interval": 100,
+  "entities": [
+    {
+      "size": 1000000,
+      "direction": "bid",
+      "minPrice": 1.051,
+      "maxPrice": 1.051
+    },
+    {
+      "size": 1000,
+      "direction": "offer",
+      "minPrice": 1.251,
+      "maxPrice": 1.251
+    },
+    {
+      "size": 1000,
+      "direction": "bid",
+      "minPrice": 1.031,
+      "maxPrice": 1.031
+    }
+  ]
+}

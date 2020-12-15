@@ -61,10 +61,10 @@ func (e *TradeClient) SendMarketDataRequest(symbol string) {
 	quickfix.SendToTarget(queryMarketDataRequest(symbol), *e.sessionID)
 }
 
-func (e *TradeClient) SendOrder(orderId string, symbol string, orderQty decimal.Decimal, price decimal.Decimal) {
+func (e *TradeClient) SendOrder(orderId string, symbol string, orderQty decimal.Decimal, price decimal.Decimal, side enum.Side) {
 	order := nos.New(
 		field.NewClOrdID(orderId),
-		field.NewSide(enum.Side_BUY),
+		field.NewSide(side),
 		field.NewTransactTime(time.Now()),
 		field.NewOrdType(enum.OrdType_LIMIT),
 	)
@@ -97,6 +97,7 @@ func (e *TradeClient) OnMarketDataSnapshotFullRefresh(msg fix44full.MarketDataSn
 	symbol, _ := msg.GetSymbol()
 	groups, _ := msg.GetNoMDEntries()
 	if groups.Len() == 0 {
+		quotes = map[string]string{}
 		quotes[symbol] = "drop"
 	}
 
