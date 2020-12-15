@@ -27,14 +27,14 @@ func CreateQuoteSession(sessionID quickfix.SessionID) {
 }
 
 func RemoveQuoteSession(sessionID quickfix.SessionID) {
-	log.LOGGER("app").Info("Remove session %s", sessionID)
+	log.LOGGER(CAT_APP).Info("Remove session %s", sessionID)
 	delete(sessions, sessionID)
 }
 
 func SubscribeToSymbol(symbol string, sessionID quickfix.SessionID) {
 	if session, ok := sessions[sessionID]; ok {
 		if _, exists := session.symbols[symbol]; !exists {
-			log.Info("Subscribe to %s", symbol)
+			log.LOGGER(CAT_APP).Info("Subscribe to %s, session: %s", symbol, sessionID)
 			session.symbols[symbol] = true
 			go startSendingMarketData(symbol, sessionID)
 		}
@@ -42,7 +42,7 @@ func SubscribeToSymbol(symbol string, sessionID quickfix.SessionID) {
 }
 
 func startSendingMarketData(symbol string, id quickfix.SessionID) {
-	log.Info("Start sending quotes %s to %s", symbol, id)
+	log.LOGGER(CAT_APP).Info("Start sending quotes %s to %s", symbol, id)
 	for {
 		session, ok := sessions[id]
 		if !ok {
@@ -61,7 +61,7 @@ func startSendingMarketData(symbol string, id quickfix.SessionID) {
 		}
 
 	}
-	log.Info("Finish sending quotes %s to %s", symbol, id)
+	log.LOGGER(CAT_APP).Info("Finish sending quotes %s to %s", symbol, id)
 }
 
 func sendMarketData(symbol string, quotes []Quote, sessionId quickfix.SessionID) {

@@ -32,6 +32,6 @@ func GetOrderConfig(symbol string) OrderConfig {
 }
 
 func SetOrderConfig(orderConfig OrderConfig) {
-	log.Info("Set order config %s", orderConfig)
+	log.LOGGER(CAT_APP).Info("Set order config %s", orderConfig)
 	orderConfigs[orderConfig.Symbol] = orderConfig
 }

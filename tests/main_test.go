@@ -149,6 +149,12 @@ func testServer(t *testing.T) {
 	clientApp.SendOrder("555", "EUR/USD_TOM", decimal.NewFromInt(500), decimal.NewFromFloat(1.26), enum.Side_BUY)
 	waitOrderStatus(clientApp, "555", enum.OrdStatus_FILLED)
 
+	clientApp.SendOrder("777", "EUR/USD_TOM", decimal.NewFromInt(500), decimal.NewFromFloat(1.032), enum.Side_SELL)
+	waitOrderStatus(clientApp, "777", enum.OrdStatus_REJECTED)
+
+	clientApp.SendOrder("888", "EUR/USD_TOM", decimal.NewFromInt(2500), decimal.NewFromFloat(1.032), enum.Side_SELL)
+	waitOrderStatus(clientApp, "888", enum.OrdStatus_FILLED)
+
 	client.Stop()
 	fixss.StopAcceptor()
 }
@@ -175,4 +181,14 @@ func sendPostFromFile(apiPath string, filePath string, t *testing.T, router *gin
 
 func removeAllWhiteSpace(str string) string {
 	return strings.Replace(strings.Replace(string(str), "\n", "", -1), " ", "", -1)
+}
+
+func TestConfig(t *testing.T) {
+	asrt := assert.New(t)
+	cfg, err := fixss.NewConfig("config/config.yml")
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+	asrt.Equal("127.0.0.1", cfg.Server.Host)
+	asrt.Equal("8888", cfg.Server.Port)
 }
