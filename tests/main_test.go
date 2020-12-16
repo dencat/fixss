@@ -62,6 +62,18 @@ func testServer(t *testing.T) {
 	asrt.Equal(400, w.Code)
 	asrt.Equal("{\"status\":\"error\"}", w.Body.String())
 
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/v1/quoteConfigs", strings.NewReader("a"))
+	router.ServeHTTP(w, req)
+	asrt.Equal(400, w.Code)
+	asrt.Equal("{\"status\":\"error\"}", w.Body.String())
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/v1/orderConfig", strings.NewReader("a"))
+	router.ServeHTTP(w, req)
+	asrt.Equal(400, w.Code)
+	asrt.Equal("{\"status\":\"error\"}", w.Body.String())
+
 	err = fixss.LoadDefaultQuoteConfig(&config)
 	if err != nil {
 		assert.Fail(t, err.Error())
@@ -191,4 +203,17 @@ func TestConfig(t *testing.T) {
 	}
 	asrt.Equal("127.0.0.1", cfg.Server.Host)
 	asrt.Equal("8888", cfg.Server.Port)
+
+	cfg, err = fixss.NewConfig("config/config_not_exists.yml")
+	asrt.NotNil(err)
+
+	cfg, err = fixss.NewConfig("config/invalid.yml")
+	asrt.NotNil(err)
+}
+
+func TestUtil(t *testing.T) {
+	asrt := assert.New(t)
+	asrt.True(fixss.FileExists("config/config.yml"))
+	asrt.False(fixss.FileExists("config/config_not_exists.yml"))
+
 }

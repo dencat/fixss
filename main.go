@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"github.com/dencat/fixss/fixss"
 	log "github.com/jeanphorn/log4go"
@@ -51,8 +52,8 @@ func ParseFlags() (string, error) {
 	flag.StringVar(&configPath, "config", "./config/config.yml", "path to config file")
 	flag.Parse()
 
-	if err := fixss.ValidateConfigPath(configPath); err != nil {
-		return "", err
+	if !fixss.FileExists(configPath) {
+		return "", errors.New(configPath + " not found")
 	}
 
 	return configPath, nil
